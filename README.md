@@ -5,7 +5,7 @@ A chrome extension that automatically closes those pesky tabs and windows opened
 1. Add the extension to chrome. Do this by turning on developer mode and dragging the folder to the chrome extensions screen. The extension should now be activated.
 2. If any site is bothering you, meaning it requires you to turn off your adblocker and because you obeyed, it took it upon itself to randomly open tabs or windows containing ads, just click on the extension's icon and click 'Add URL'. That's all. 
 
-The URL will now be added to chrome's local storage and the extension will begin monitoring any tab or window opened by that site, automatically closing faulty ones if needed.
+The URL of that site will now be added to chrome's local storage and the extension will begin monitoring any tab or window opened by that site, automatically closing faulty ones if needed.
 
 ## Notes
 1. After adding a URL, all new tabs opened that start with the protocol+hostname of the URL will be allowed; all others won't.

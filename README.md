@@ -10,7 +10,11 @@ The URL will now be added to chrome's local storage where the extension monitors
 ## Notes
 1. After adding a URL, all new tabs opened that start with the protocol+hostname of the URL will be allowed; all others won't.
 2. To _purposely_ open a new tab that has protocol+hostname different from that of the URL, right click the link and choose "Purposely open in a new tab". See the picture below. 
-[](right_click.png)
+![](right_click.png)
+
+
+## Reference
+Extension icon gotten freely from [Flaticon](https://www.flaticon.com/)
 
 
 

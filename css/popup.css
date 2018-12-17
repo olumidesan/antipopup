@@ -1,0 +1,40 @@
+
+
+#site_added {
+    text-align: center;
+    margin: 4px;
+    color: green;
+    font-size: 13px;
+    font-weight: bold;  
+}
+
+#site_adder {
+    margin: auto;
+    padding: 4px;
+    width: 6em;
+    height: 30px;
+    border-width: 0.5px;
+    border-radius: 10px;
+    color: white;
+    background-color: green;
+}
+
+#site_adder:hover {
+    background-color: darkgreen;
+    cursor: pointer;
+}
+
+#outer {
+    margin:6px;
+    text-align: center;
+}
+
+#domain {
+    width: 170px;
+    height: 21px;
+    border-radius: 10px;
+    border-color: silver;
+    padding: 3px;
+
+}
+

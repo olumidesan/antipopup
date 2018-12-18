@@ -11,7 +11,7 @@
 #site_adder {
     margin: auto;
     padding: 4px;
-    width: 6em;
+    width: 8em;
     height: 30px;
     border-width: 0.5px;
     border-radius: 10px;
@@ -25,7 +25,7 @@
 }
 
 #outer {
-    margin:6px;
+    margin: 9px;
     text-align: center;
 }
 

@@ -21,8 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     bad_sites.push(full_url);
                     chrome.storage.local.set({ guilty_sites: bad_sites });
                     btn.remove();
-                    input.value = " ";
-                    msg.innerHTML += "URL Added";
+                    msg.innerHTML += "Site Added";
                 });
             }
             else {
@@ -31,15 +30,18 @@ document.addEventListener('DOMContentLoaded', function () {
                         bad_sites.push(full_url);
                         chrome.storage.local.set({ guilty_sites: bad_sites });
                         btn.remove();
-                        input.value = " ";
-                        msg.innerHTML += "URL Added";
+                        msg.innerHTML += "Site Added";
                     });
                 }
                 else {
-                    input.value = " ";
-                    btn.remove();
                     msg.innerHTML = "";
-                    msg.innerHTML += "URL Already Added";
+                    msg.innerHTML += "Site Already Added";
+                    btn.innerText = "Remove Site";
+                    btn.addEventListener('click', function() {
+                        let url_index = bad_sites.indexOf(full_url);
+                        bad_sites.splice(url_index, 1);
+                        chrome.storage.local.set({ guilty_sites: bad_sites });
+                    })
                 }
             }
         });

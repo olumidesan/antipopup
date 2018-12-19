@@ -1,5 +1,5 @@
 
-let context_menu_link, parentURL, all_guilty_sites;
+let context_menu_link, change_happened, removed_tab_id, global_tab_url, global_tab_id, parentURL, all_guilty_sites;
 let new_tabs = new Array();
 
 let contextMenuItem = {
@@ -24,68 +24,86 @@ chrome.storage.onChanged.addListener(function (changes, local) {
 });
 
 
-chrome.tabs.query({ active: true }, function (tabs) {
+chrome.tabs.query({ active: true, currentWindow: true, lastFocusedWindow: true }, function (tabs) {
+    global_tab_id = tabs[0].id;
+    global_tab_url = tabs[0].url;
 
     chrome.storage.local.get(['guilty_sites'], function (result) {
 
         let guilty_sites = result.guilty_sites;
         all_guilty_sites = guilty_sites;
+    });
 
-        chrome.tabs.onCreated.addListener(function (tab) {
+    chrome.tabs.onUpdated.addListener(function (global_tab_id, tab) {
+        change_happened = true;
+    });
 
-            let parent_tab_id = tab.openerTabId;
+    // Listener for new tab popups
+    chrome.tabs.onCreated.addListener(function (tab) {
+        let parent_tab_id = tab.openerTabId;
 
-            if (parent_tab_id) {
+        if (parent_tab_id) {
+            if (
+                !(
+                    (tab.url === context_menu_link) ||
+                    (tab.title == "New Tab") ||
+                    (tab.url.startsWith('chrome'))
+                )
+            ) {
+                chrome.tabs.get(parent_tab_id, function (parent_tab) {
+
+                    let parent_tab_url = parent_tab.url;
+                    parent_window_id = parent_tab.windowId;
+
+                    let parent_url = (new URL(parent_tab_url)).protocol + "//" + (new URL(parent_tab_url)).hostname;
+                    parentURL = parent_url;
+
+                    if (
+                        (all_guilty_sites.indexOf(parent_url) >= 0) &&
+                        (!(tab.url.startsWith(parent_url)))
+                    ) {
+                        removed_tab_id = tab.id;
+                        chrome.tabs.remove(tab.id);
+                    }
+                });
+            }
+        }
+    });
+});
+
+// Listener for window popups
+chrome.tabs.onCreated.addListener(function (tab) {
+    let tab_window_id = chrome.windows.WINDOW_ID_CURRENT;
+
+    chrome.tabs.query({ windowType: "popup", active: true, index: 0 }, function (tabs) {
+        new_tabs[0] = tabs[0];
+
+        if (new_tabs[0] !== undefined) {
+            if (tab_window_id !== new_tabs[0].windowId) {
                 if (
-                    !(
-                        (tab.url === context_menu_link) ||
-                        (tab.title == "New Tab") ||
-                        (tab.url.startsWith('chrome')) ||
-                        (tab.url == "Start Page") ||
-                        (tab.url.startsWith('vivaldi'))
-                    )
+                    (all_guilty_sites.indexOf(parentURL) >= 0) &&
+                    (!(new_tabs[0].url.startsWith(parentURL)))
                 ) {
-                    chrome.tabs.get(parent_tab_id, function (parent_tab) {
-
-                        let parent_tab_url = parent_tab.url;
-                        parent_window_id = parent_tab.windowId;
-
-                        let parent_url = (new URL(parent_tab_url)).protocol + "//" + (new URL(parent_tab_url)).hostname;
-                        parentURL = parent_url;
-
-                        if (tab.url.startsWith(parent_url)) {
-                            let current_parent_url = parent_tab.url;
-
-                            if (current_parent_url != parent_tab_url) {
-                                chrome.tabs.remove(parent_tab_id);
-                            }
-                        }
-                        else {
-                            if (
-                                (guilty_sites.indexOf(parent_url) >= 0) &&
-                                (!(tab.url.startsWith(parent_url)))
-                            ) {
-                                chrome.tabs.remove(tab.id);
-                            }
-                        }
-                    });
+                    chrome.tabs.remove(new_tabs[0].id);
                 }
             }
-        });
+        }
     });
 });
 
+
+// Listener for those websites that open the current page in a new tab and open an ad in the current tab
 chrome.tabs.onCreated.addListener(function (tab) {
+    if (change_happened === true) {
 
-    chrome.tabs.query({ windowType: "popup" }, function (tabs) {
-        for (var i = 0; i < tabs.length; i++) {
-            new_tabs[i] = tabs[i];
+        if (removed_tab_id !== undefined) {
+            chrome.tabs.get(removed_tab_id, function (tab) {
+                if (!(chrome.runtime.lastError)) {
+                    chrome.tabs.update(global_tab_id, { url: global_tab_url });
+                }
+            });
         }
-        if (
-            (all_guilty_sites.indexOf(parentURL) >= 0) &&
-            (!(new_tabs[0].url.startsWith(parentURL)))
-        ) {
-            chrome.tabs.remove(new_tabs[0].id);
-        }
-    });
+    }
 });
+
+

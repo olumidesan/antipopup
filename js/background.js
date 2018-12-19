@@ -113,9 +113,9 @@ chrome.tabs.onCreated.addListener(function (tab) {
 chrome.tabs.onCreated.addListener(function (tab) {
 
     if (change_happened === true && (tab.title != "New Tab" || (!(tab.url.startsWith('chrome'))))) {
-        if (removed_tab_id !== undefined && new_tab_url != global_tab_url) {
+        if (removed_tab_id !== undefined) {
             chrome.tabs.get(removed_tab_id, function (tab) {
-                if (chrome.runtime.lastError) {
+                if (chrome.runtime.lastError  && new_tab_url != global_tab_url) {
                     chrome.tabs.update(global_tab_id, { url: glob_url });
                 }
             });

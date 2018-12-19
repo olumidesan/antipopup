@@ -1,5 +1,14 @@
 
-let context_menu_link, change_happened, removed_tab_id, global_tab_url, global_tab_id, parentURL, all_guilty_sites;
+let context_menu_link,
+    change_happened,
+    glob_url,
+    new_tab_url,
+    removed_tab_id,
+    global_tab_url,
+    global_tab_id,
+    parentURL,
+    all_guilty_sites;
+
 let new_tabs = new Array();
 
 let contextMenuItem = {
@@ -24,9 +33,11 @@ chrome.storage.onChanged.addListener(function (changes, local) {
 });
 
 
-chrome.tabs.query({ active: true, currentWindow: true, lastFocusedWindow: true }, function (tabs) {
+chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     global_tab_id = tabs[0].id;
-    global_tab_url = tabs[0].url;
+    glob_url = tabs[0].url;
+    global_tab_url = (new URL(glob_url)).protocol + "//" + (new URL(glob_url)).hostname;
+
 
     chrome.storage.local.get(['guilty_sites'], function (result) {
 
@@ -35,7 +46,11 @@ chrome.tabs.query({ active: true, currentWindow: true, lastFocusedWindow: true }
     });
 
     chrome.tabs.onUpdated.addListener(function (global_tab_id, tab) {
-        change_happened = true;
+        if (tab.url !== undefined) {
+            new_tab_url = (new URL(tab.url)).protocol + "//" + (new URL(tab.url)).hostname;
+            change_happened = true;
+        }
+        
     });
 
     // Listener for new tab popups
@@ -92,14 +107,16 @@ chrome.tabs.onCreated.addListener(function (tab) {
 });
 
 
+
+
 // Listener for those websites that open the current page in a new tab and open an ad in the current tab
 chrome.tabs.onCreated.addListener(function (tab) {
-    if (change_happened === true) {
 
-        if (removed_tab_id !== undefined) {
+    if (change_happened === true && (tab.title != "New Tab" || (!(tab.url.startsWith('chrome'))))) {
+        if (removed_tab_id !== undefined && new_tab_url != global_tab_url) {
             chrome.tabs.get(removed_tab_id, function (tab) {
                 if (chrome.runtime.lastError) {
-                    chrome.tabs.update(global_tab_id, { url: global_tab_url });
+                    chrome.tabs.update(global_tab_id, { url: glob_url });
                 }
             });
         }

@@ -98,7 +98,7 @@ chrome.tabs.onCreated.addListener(function (tab) {
 
         if (removed_tab_id !== undefined) {
             chrome.tabs.get(removed_tab_id, function (tab) {
-                if (!(chrome.runtime.lastError)) {
+                if (chrome.runtime.lastError) {
                     chrome.tabs.update(global_tab_id, { url: global_tab_url });
                 }
             });

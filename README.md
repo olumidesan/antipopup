@@ -1,6 +1,8 @@
 
 A chrome extension that automatically closes those pesky tabs and windows opened by ad-requiring sites.  
 
+#Update: Extension now downloadable from Chrome store. See link [here](https://chrome.google.com/webstore/detail/popupblocker/pecjjeljffnplfcclbbbklkpcbbkchdk)
+
 ## Usage
 1. Add the extension to chrome. Do this by turning on developer mode and dragging the folder to the chrome extensions screen. The extension should now be activated.
 2. If any site is bothering you, meaning it requires you to turn off your adblocker and because you obeyed, it took it upon itself to randomly open tabs or windows containing ads, just click on the extension's icon and click 'Add Site'. That's all. 

@@ -75,7 +75,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 
                     if (
                         (all_guilty_sites.indexOf(parent_url) >= 0) &&
-                        (!(tab.url.startsWith(parent_url)))
+                        (!(tab.pendingUrl.startsWith(parent_url)))
                     ) {
                         removed_tab_id = tab.id;
                         chrome.tabs.remove(tab.id);
@@ -97,7 +97,7 @@ chrome.tabs.onCreated.addListener(function (tab) {
             if (tab_window_id !== new_tabs[0].windowId) {
                 if (
                     (all_guilty_sites.indexOf(parentURL) >= 0) &&
-                    (!(new_tabs[0].url.startsWith(parentURL)))
+                    (!(new_tabs[0].pendingUrl.startsWith(parentURL)))
                 ) {
                     chrome.tabs.remove(new_tabs[0].id);
                 }

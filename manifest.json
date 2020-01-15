@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "Ad-tab Closer",
     "description": "This extension automatically closes tabs and windows opened by ad-requiring sites",
-    "version": "1.0",
+    "version": "1.2",
     "browser_action": {
         "default_icon": {
             "19": "images/icon19.png",

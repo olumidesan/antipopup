@@ -22,6 +22,11 @@ function stripQueryParameters(url) {
 	return url.toLowerCase().split('?')[0]
 }
 
+async function closeTab(tabId) {
+	let tab = await getTabDetails(tabId)
+	if (tab) chrome.tabs.remove(tabId)
+}
+
 // Proxy for Local Storage
 const LS = {
 	getItem: async key => (await chrome.storage.local.get(key))[key],
@@ -33,6 +38,7 @@ export {stripQueryParameters}
 export {getTabDetails}
 export {queryTabs}
 export {formatUrl}
+export {closeTab}
 export {LS}
 
 export {URL_CACHE_KEY }

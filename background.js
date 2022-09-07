@@ -5,6 +5,7 @@ import {
 	getTabDetails,
 	URL_CACHE_KEY,
 	SITES_CACHE_KEY,
+	stripQueryParameters,
 	DUPLICATION_FLAG_KEY,
 	CONTEXT_MENU_FLAG_KEY,
 	PARENT_TAB_DETAILS_KEY,
@@ -84,10 +85,16 @@ async function onTabCreatedListener(tab) {
 	if (shouldCloseCurrentTab) chrome.tabs.remove(tabId);
 
 	// Tab Duplication?
-	// Common with websites that open the current page in a new tab 
-	// and open an ad in the current tab
-	if (destinationUrl === parentUrl) {
-		LS.setItem(DUPLICATION_FLAG_KEY, true)
+	// Common with websites that open the current page 
+	// in a new tab and open an ad in the current tab
+	// ----------------------------------------------
+	// The below, in conjuction with `onTabUpdatedListener`
+	// aims to combat this behaviour: Delete the duplicate tab
+	// i.e the tab that was just opened (that contains the valid url)
+	// and revert the original tab (now an ad) to the actual url of
+	// the tab that was just closed
+	if (stripQueryParameters(destinationUrl) === stripQueryParameters(parentUrl)) {
+		await LS.setItem(DUPLICATION_FLAG_KEY, { isDuplicate: true, tabId: tabId, destination: destinationUrl })
 	}
 }
 
@@ -132,18 +139,25 @@ async function onTabUpdatedListener(tabId, changeInfo, tab) {
 
 	// If the updated tab == the parent tab
 	if (tab.id === parentTabDetails.id) {
-		let tabDuplication = await LS.getItem(DUPLICATION_FLAG_KEY);
-		let tabIsGuilty = await isTabGuilty(tab.url, parentTabDetails.url);
+		let duplicateTab = await LS.getItem(DUPLICATION_FLAG_KEY);
 
-		// Compare their urls and update if the parent changed
-		if (tabIsGuilty && tabDuplication) {
-			chrome.tabs.remove(parentTabDetails.id) // Remove duplicate
-			chrome.tabs.update(tab.id, { url: parentTabDetails.url }); // Revert original
+		// If a duplication has been detected
+		if (duplicateTab && duplicateTab.isDuplicate) {
+			let tabIsGuilty = await isTabGuilty(tab.url, parentTabDetails.url);
+
+			// Compare their urls and update if the parent changed
+			if (tabIsGuilty) {
+				// Remove duplicate
+				chrome.tabs.remove(duplicateTab.tabId, async () => {
+					// Revert original to intended
+					await isTabGuilty(tab.url, parentTabDetails.url); // Delay
+					chrome.tabs.update(tab.id, { url: duplicateTab.destination });
+				})
+			}
+			// Reset
+			LS.setItem(DUPLICATION_FLAG_KEY, { isDuplicate: false, tabId: null, destination: null });
 		}
 	}
-
-	// Reset
-	LS.setItem(DUPLICATION_FLAG_KEY, false);
 }
 
 

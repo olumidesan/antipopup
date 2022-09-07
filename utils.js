@@ -18,6 +18,10 @@ function formatUrl(url) {
 	return (new URL(url)).protocol + "//" + (new URL(url)).hostname;
 }
 
+function stripQueryParameters(url) {
+	return url.toLowerCase().split('?')[0]
+}
+
 // Proxy for Local Storage
 const LS = {
 	getItem: async key => (await chrome.storage.local.get(key))[key],
@@ -25,6 +29,7 @@ const LS = {
 };
 
 
+export {stripQueryParameters}
 export {getTabDetails}
 export {queryTabs}
 export {formatUrl}

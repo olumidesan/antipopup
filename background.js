@@ -13,6 +13,7 @@ import {
 } from "./utils.js";
 
 
+const humanMinDuration = 1800 //ms
 const contextMenuItem = {
 	"id": "newTabContextMenu",
 	"title": "Purposely open in a new tab",
@@ -89,7 +90,12 @@ async function onTabCreatedListener(tab) {
 	// Common with websites that open the current page 
 	// in a new tab and open an ad in the current tab
 	if (stripQueryParameters(destinationUrl) === stripQueryParameters(parentUrl)) {
-		await LS.setItem(DUPLICATION_FLAG_KEY, true)
+		await LS.setItem(DUPLICATION_FLAG_KEY, {
+			tabId: tabId,
+			isDuplicate: true,
+			timeStamp: Date.now(),
+			destination: destinationUrl,
+		})
 	}
 }
 
@@ -135,17 +141,36 @@ async function onTabUpdatedListener(tabId, changeInfo, tab) {
 	// If the updated tab == the parent tab
 	if (tab.id === parentTabDetails.id) {
 		let duplicateTab = await LS.getItem(DUPLICATION_FLAG_KEY);
-		let tabIsGuilty = await isTabGuilty(tab.url, parentTabDetails.url);
 
-		// If a duplication has been detected
-		if (duplicateTab && tabIsGuilty) {
+		if (duplicateTab && duplicateTab.timeStamp) {
 
-			// Delete now ad tab
-			await closeTab(tab.id);
+			// Human cloning of a tab would be more than humanMinDuration
+			let automatedTransition = (Date.now() - duplicateTab.timeStamp) < humanMinDuration ? true : false;
+			let tabIsGuilty = await isTabGuilty(tab.url, parentTabDetails.url);
+
+			// If a duplication has been detected
+			if (duplicateTab.isDuplicate && tabIsGuilty && automatedTransition) {
+
+				// Delete now ad tab
+				await closeTab(tab.id);
+
+				// OR
+
+				// // Remove duplicate and revert original to intended
+				// chrome.tabs.remove(duplicateTab.tabId, async () => {					
+				// 	await isTabGuilty(tab.url, parentTabDetails.url); // Delay
+				// 	chrome.tabs.update(tab.id, { url: duplicateTab.destination });
+				// })
+			}
+
+			// Reset
+			LS.setItem(DUPLICATION_FLAG_KEY, {
+				tabId: null,
+				timeStamp: null,
+				destination: null,
+				isDuplicate: false,
+			});
 		}
-
-		// Reset
-		LS.setItem(DUPLICATION_FLAG_KEY, { isDuplicate: false, tabId: null, destination: null });
 	}
 }
 

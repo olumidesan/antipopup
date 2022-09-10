@@ -13,7 +13,7 @@ import {
 } from "./utils.js";
 
 
-const humanMinDuration = 1800 //ms
+const humanMinDuration = 1900 //ms
 const contextMenuItem = {
 	"id": "newTabContextMenu",
 	"title": "Purposely open in a new tab",
@@ -74,8 +74,9 @@ async function onTabCreatedListener(tab) {
 	let parentTabDetails = await getTabDetails(parentTabId)
 
 	let parentUrl = parentTabDetails.url;
-	let destinationUrl = currentTabDetails.pendingUrl;
+	
 	// If the pendingUrl has not been set yet, use url
+	let destinationUrl = currentTabDetails.pendingUrl;
 	if (!destinationUrl) destinationUrl = currentTabDetails.url;
 
 	// Cache the key to storage
@@ -146,21 +147,29 @@ async function onTabUpdatedListener(tabId, changeInfo, tab) {
 
 			// Human cloning of a tab would be more than humanMinDuration
 			let automatedTransition = (Date.now() - duplicateTab.timeStamp) < humanMinDuration ? true : false;
-			let tabIsGuilty = await isTabGuilty(tab.url, parentTabDetails.url);
 
+			// If the pendingUrl has not been set yet, use url
+			let parentUrl = parentTabDetails.pendingUrl;
+			if (!parentUrl) parentUrl = parentTabDetails.url;
+
+			let tabIsGuilty = await isTabGuilty(tab.url, parentUrl);
+			
 			// If a duplication has been detected
 			if (duplicateTab.isDuplicate && tabIsGuilty && automatedTransition) {
 
 				// Delete now ad tab
-				await closeTab(tab.id);
+				// await closeTab(tab.id);
 
 				// OR
 
-				// // Remove duplicate and revert original to intended
-				// chrome.tabs.remove(duplicateTab.tabId, async () => {					
-				// 	await isTabGuilty(tab.url, parentTabDetails.url); // Delay
-				// 	chrome.tabs.update(tab.id, { url: duplicateTab.destination });
-				// })
+				// Remove duplicate and revert original to intended
+				chrome.tabs.remove(duplicateTab.tabId, async () => {					
+					await isTabGuilty(tab.url, parentUrl); // Delay
+
+					// Force redirect by repeating. Some sites are stubborn
+					chrome.tabs.update(tab.id, { url: duplicateTab.destination });
+					chrome.tabs.update(tab.id, { url: duplicateTab.destination });
+				})
 			}
 
 			// Reset

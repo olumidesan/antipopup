@@ -6,7 +6,6 @@ import {
 	getTabDetails,
 	URL_CACHE_KEY,
 	SITES_CACHE_KEY,
-	stripQueryParameters,
 	DUPLICATION_FLAG_KEY,
 	CONTEXT_MENU_FLAG_KEY,
 	PARENT_TAB_DETAILS_KEY,
@@ -90,7 +89,7 @@ async function onTabCreatedListener(tab) {
 	// Tab Duplication?
 	// Common with websites that open the current page 
 	// in a new tab and open an ad in the current tab
-	if (stripQueryParameters(destinationUrl) === stripQueryParameters(parentUrl)) {
+	if (formatUrl(destinationUrl) === formatUrl(parentUrl)) {
 		await LS.setItem(DUPLICATION_FLAG_KEY, {
 			tabId: tabId,
 			isDuplicate: true,
@@ -148,12 +147,9 @@ async function onTabUpdatedListener(tabId, changeInfo, tab) {
 			// Human cloning of a tab would be more than humanMinDuration
 			let automatedTransition = (Date.now() - duplicateTab.timeStamp) < humanMinDuration ? true : false;
 
-			// If the pendingUrl has not been set yet, use url
-			let parentUrl = parentTabDetails.pendingUrl;
-			if (!parentUrl) parentUrl = parentTabDetails.url;
-
+			let parentUrl = parentTabDetails.url;
 			let tabIsGuilty = await isTabGuilty(tab.url, parentUrl);
-			
+
 			// If a duplication has been detected
 			if (duplicateTab.isDuplicate && tabIsGuilty && automatedTransition) {
 

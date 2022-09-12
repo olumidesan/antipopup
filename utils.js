@@ -18,9 +18,6 @@ function formatUrl(url) {
 	return (new URL(url)).protocol + "//" + (new URL(url)).hostname;
 }
 
-function stripQueryParameters(url) {
-	return url.toLowerCase().split('?')[0]
-}
 
 async function closeTab(tabId) {
 	let tab = await getTabDetails(tabId)
@@ -34,7 +31,6 @@ const LS = {
 };
 
 
-export {stripQueryParameters}
 export {getTabDetails}
 export {queryTabs}
 export {formatUrl}
